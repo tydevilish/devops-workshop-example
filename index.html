@@ -1,0 +1,2007 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Workshop — GitLab CI/CD Pipeline</title>
+  <meta name="description" content="คู่มือ Workshop สอนการทำ CI/CD Pipeline ด้วย GitLab, Docker และ Nginx แบบ Step-by-Step" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sidebar-w: 280px;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --accent-mid: #dbeafe;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --border: #e5e7eb;
+      --bg: #ffffff;
+      --bg-sidebar: #f9fafb;
+      --bg-code: #f3f4f6;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'IBM Plex Sans Thai', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* =================== TOP BAR =================== */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      gap: 12px;
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 15px; color: var(--text-primary);
+      text-decoration: none;
+    }
+    .topbar-logo .logo-icon {
+      width: 30px; height: 30px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px;
+    }
+    .topbar-badge {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--accent-mid);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      letter-spacing: .3px;
+    }
+    .topbar-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .topbar-steps {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* =================== LAYOUT =================== */
+    .layout {
+      display: flex;
+      padding-top: 56px;
+      min-height: 100vh;
+    }
+
+    /* =================== SIDEBAR =================== */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 56px; left: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 20px 0 100px;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .sidebar-section-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 12px 20px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      position: relative;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      font-weight: 400;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 3px 3px 0;
+    }
+    .nav-num {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s, color .15s;
+    }
+    .nav-item.active .nav-num,
+    .nav-item:hover .nav-num {
+      background: var(--accent);
+      color: #fff;
+    }
+    .nav-item-text { flex: 1; }
+    .nav-item-steps {
+      font-size: 10px;
+      color: var(--text-muted);
+      background: var(--border);
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
+    .nav-item.active .nav-item-steps,
+    .nav-item:hover .nav-item-steps {
+      background: var(--accent-mid);
+      color: var(--accent);
+    }
+
+    /* SUB-NAV (step list under each part) */
+    .nav-sub {
+      display: flex;
+      flex-direction: column;
+      border-left: 2px solid var(--accent-mid);
+      margin: 2px 0 6px 32px;
+      padding: 2px 0;
+    }
+    .nav-sub-item {
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      border-left: 2px solid transparent;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: color .2s, background .2s, border-color .2s;
+      font-family: inherit;
+      line-height: 1.5;
+      border-radius: 0 6px 6px 0;
+    }
+    .nav-sub-item:hover { color: var(--accent); background: var(--accent-light); }
+    .nav-sub-item.sub-active {
+      color: var(--accent);
+      background: var(--accent-light);
+      border-left-color: var(--accent);
+    }
+
+    /* SIDEBAR PROGRESS (bottom of sidebar) */
+    .sidebar-progress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: var(--sidebar-w);
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      z-index: 10;
+    }
+    .sidebar-progress-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .progress-bar-wrap {
+      background: var(--border);
+      border-radius: 999px;
+      height: 4px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width .4s ease;
+    }
+    .progress-text {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* =================== MAIN CONTENT =================== */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 48px 60px 80px;
+    }
+
+    /* PAGES */
+    .page { display: none; animation: fadeIn .25s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-part-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .page-part-label::before {
+      content: '';
+      width: 16px; height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .page-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .page-overview {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .overview-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .overview-chip span { font-size: 14px; }
+
+    /* STEP */
+    .step {
+      margin-bottom: 36px;
+    }
+    .step-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* STEP IMAGE */
+    .step-image {
+      margin: 14px 0 0 46px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: var(--bg-code);
+    }
+    .step-image img {
+      width: 100%;
+      display: block;
+    }
+    .step-image .img-caption {
+      padding: 8px 12px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--bg-sidebar);
+    }
+
+    /* Multiple images side by side */
+    .step-images-row {
+      margin: 14px 0 0 46px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .step-images-row .step-image {
+      margin: 0;
+    }
+
+    /* CODE BLOCK */
+    .code-block {
+      margin: 14px 0 0 46px;
+      background: #1e1e2e;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #16161e;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .code-block-lang {
+      font-size: 11px;
+      font-weight: 600;
+      color: #7c6af7;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .code-block-copy {
+      font-size: 11px;
+      color: #6b7280;
+      background: none;
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 5px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .code-block-copy:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+    .code-block-copy.copied { color: #4ade80; border-color: #4ade80; }
+    .code-block pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.8;
+      color: #cdd6f4;
+    }
+    .code-block pre .cm { color: #6c7086; }
+    .code-block pre .kw { color: #cba6f7; }
+    .code-block pre .st { color: #a6e3a1; }
+    .code-block pre .nm { color: #89b4fa; }
+    .code-block pre .vl { color: #fab387; }
+
+    /* CALLOUT */
+    .callout {
+      margin: 14px 0 0 46px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border-left: 3px solid;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 13.5px;
+      line-height: 1.65;
+    }
+    .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .callout.info { background: #eff6ff; border-color: var(--accent); color: #1e40af; }
+    .callout.tip  { background: #f0fdf4; border-color: var(--success); color: #15803d; }
+    .callout.warn { background: #fffbeb; border-color: var(--warning); color: #92400e; }
+
+    /* DIVIDER */
+    .step-divider {
+      border: none;
+      border-top: 1px dashed var(--border);
+      margin: 32px 0;
+    }
+
+    /* INLINE CODE */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 5px;
+      color: var(--accent);
+    }
+
+    /* NAV FOOTER */
+    .page-nav {
+      margin-top: 56px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .page-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .page-nav-btn:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .page-nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .page-nav-btn:disabled:hover {
+      background: var(--bg);
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+    .page-nav-btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .page-nav-btn.primary:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    /* VARIABLE TABLE */
+    .var-table {
+      margin: 14px 0 0 46px;
+      width: calc(100% - 46px);
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+    .var-table th {
+      background: var(--bg-code);
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .var-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    .var-table tr:last-child td { border-bottom: none; }
+    .var-table tr:hover td { background: var(--accent-light); }
+    .var-table td code { font-size: 12px; }
+    .var-table .val { color: var(--success); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    /* PIPELINE DIAGRAM */
+    .pipeline {
+      margin: 14px 0 0 46px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .pipeline-stage {
+      flex: 1;
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .pipeline-stage-icon { font-size: 22px; margin-bottom: 6px; }
+    .pipeline-stage-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+    .pipeline-stage-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+    .pipeline-arrow {
+      padding: 0 8px;
+      color: var(--text-muted);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* LOG BLOCK */
+    .log-block {
+      margin: 14px 0 0 46px;
+      background: #0d1117;
+      border-radius: var(--radius);
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.8;
+      color: #8b949e;
+      border: 1px solid #30363d;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .log-block .log-success { color: #3fb950; }
+    .log-block .log-info { color: #58a6ff; }
+    .log-block .log-warn { color: #d29922; }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.success { background: #dcfce7; color: var(--success); }
+    .badge.info    { background: var(--accent-light); color: var(--accent); }
+    .badge.warn    { background: #fef3c7; color: var(--warning); }
+
+    /* FINAL SUCCESS */
+    .final-card {
+      margin: 14px 0 0 46px;
+      padding: 28px;
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .final-card .final-icon { font-size: 48px; margin-bottom: 12px; }
+    .final-card h3 { font-size: 20px; font-weight: 700; color: #14532d; margin-bottom: 8px; }
+    .final-card p { font-size: 14px; color: #166534; line-height: 1.7; }
+
+    /* 3-GRID */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0 0 46px;
+    }
+    .grid-3 .step-image { margin: 0; }
+
+    /* LIGHTBOX */
+    .lightbox-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.85);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      animation: lbFadeIn .2s ease;
+    }
+    .lightbox-overlay.open { display: flex; }
+    @keyframes lbFadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 88vh;
+      border-radius: 10px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      object-fit: contain;
+      transform: scale(0.95);
+      animation: lbZoomIn .2s ease forwards;
+    }
+    @keyframes lbZoomIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 20px; right: 24px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,.3); }
+    .lightbox-caption {
+      position: absolute;
+      bottom: 24px;
+      left: 50%; transform: translateX(-50%);
+      font-size: 13px;
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80vw;
+    }
+    /* Make images look clickable */
+    .step-image img {
+      cursor: zoom-in;
+      transition: opacity .15s;
+    }
+    .step-image img:hover { opacity: 0.92; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 24px 20px 60px; }
+      .step-image, .code-block, .callout, .var-table, .pipeline, .log-block, .final-card, .grid-3 {
+        margin-left: 0;
+      }
+      .step-images-row { margin-left: 0; }
+      .page-title { font-size: 22px; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a class="topbar-logo" href="#">
+    <div class="logo-icon">🚀</div>
+    DevOps Workshop
+  </a>
+  <span class="topbar-badge">GitLab CI/CD</span>
+  <div class="topbar-right">
+    <span class="topbar-steps" id="topbar-steps">Part 1 of 5</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+
+    <button class="nav-item active" onclick="showPage(1)" id="nav-1">
+      <div class="nav-num">1</div>
+      <span class="nav-item-text">Clone &amp; ตั้งค่าไฟล์</span>
+      <span class="nav-item-steps">Step 0–9</span>
+    </button>
+    <div class="nav-sub" id="sub-1">
+      <button class="nav-sub-item sub-active" data-anchor="step-0" onclick="navSubClick(1,this)">Step 0 — เปิดโปรเจคใน GitLab</button>
+      <button class="nav-sub-item" data-anchor="step-1" onclick="navSubClick(1,this)">Step 1 — คลิกปุ่ม Code</button>
+      <button class="nav-sub-item" data-anchor="step-2" onclick="navSubClick(1,this)">Step 2 — คัดลอก URL</button>
+      <button class="nav-sub-item" data-anchor="step-3" onclick="navSubClick(1,this)">Step 3 — git clone</button>
+      <button class="nav-sub-item" data-anchor="step-4" onclick="navSubClick(1,this)">Step 4 — cd my-project</button>
+      <button class="nav-sub-item" data-anchor="step-5" onclick="navSubClick(1,this)">Step 5 — เปิด VS Code</button>
+      <button class="nav-sub-item" data-anchor="step-6" onclick="navSubClick(1,this)">Step 6 — สร้าง index.html</button>
+      <button class="nav-sub-item" data-anchor="step-7" onclick="navSubClick(1,this)">Step 7 — วาง Portfolio</button>
+      <button class="nav-sub-item" data-anchor="step-8" onclick="navSubClick(1,this)">Step 8 — สร้าง nginx.conf</button>
+      <button class="nav-sub-item" data-anchor="step-9" onclick="navSubClick(1,this)">Step 9 — เขียน nginx config</button>
+    </div>
+
+    <button class="nav-item" onclick="showPage(2)" id="nav-2">
+      <div class="nav-num">2</div>
+      <span class="nav-item-text">Docker &amp; Nginx</span>
+      <span class="nav-item-steps">Step 10–14</span>
+    </button>
+    <div class="nav-sub" id="sub-2">
+      <button class="nav-sub-item" data-anchor="step-10" onclick="navSubClick(2,this)">Step 10 — สร้าง Dockerfile</button>
+      <button class="nav-sub-item" data-anchor="step-11" onclick="navSubClick(2,this)">Step 11 — เขียน Dockerfile</button>
+      <button class="nav-sub-item" data-anchor="step-12" onclick="navSubClick(2,this)">Step 12 — สร้าง docker-compose</button>
+      <button class="nav-sub-item" data-anchor="step-13" onclick="navSubClick(2,this)">Step 13 — เขียน docker-compose</button>
+      <button class="nav-sub-item" data-anchor="step-14" onclick="navSubClick(2,this)">Step 14 — ตรวจสอบ Username/Port</button>
+    </div>
+
+    <button class="nav-item" onclick="showPage(3)" id="nav-3">
+      <div class="nav-num">3</div>
+      <span class="nav-item-text">CI/CD Pipeline</span>
+      <span class="nav-item-steps">Step 15–16</span>
+    </button>
+    <div class="nav-sub" id="sub-3">
+      <button class="nav-sub-item" data-anchor="step-15" onclick="navSubClick(3,this)">Step 15 — เปิด .gitlab-ci.yml</button>
+      <button class="nav-sub-item" data-anchor="step-16" onclick="navSubClick(3,this)">Step 16 — Pipeline overview</button>
+      <button class="nav-sub-item" data-anchor="step-16" onclick="navSubClick(3,this)">Step 16 — Stage 1: Build</button>
+      <button class="nav-sub-item" data-anchor="step-16" onclick="navSubClick(3,this)">Step 16 — Stage 2: Test</button>
+      <button class="nav-sub-item" data-anchor="step-16" onclick="navSubClick(3,this)">Step 16 — Stage 3: Deploy</button>
+    </div>
+
+    <button class="nav-item" onclick="showPage(4)" id="nav-4">
+      <div class="nav-num">4</div>
+      <span class="nav-item-text">Push &amp; ตรวจสอบ</span>
+      <span class="nav-item-steps">Step 17–24</span>
+    </button>
+    <div class="nav-sub" id="sub-4">
+      <button class="nav-sub-item" data-anchor="step-17" onclick="navSubClick(4,this)">Step 17–18 — เปิด Terminal</button>
+      <button class="nav-sub-item" data-anchor="step-19" onclick="navSubClick(4,this)">Step 19 — git add .</button>
+      <button class="nav-sub-item" data-anchor="step-20" onclick="navSubClick(4,this)">Step 20 — git commit</button>
+      <button class="nav-sub-item" data-anchor="step-21" onclick="navSubClick(4,this)">Step 21 — git branch main</button>
+      <button class="nav-sub-item" data-anchor="step-22" onclick="navSubClick(4,this)">Step 22 — git push</button>
+      <button class="nav-sub-item" data-anchor="step-24" onclick="navSubClick(4,this)">Step 24 — ดู Pipeline GitLab</button>
+    </div>
+
+    <button class="nav-item" onclick="showPage(5)" id="nav-5">
+      <div class="nav-num">5</div>
+      <span class="nav-item-text">Variables &amp; Deploy</span>
+      <span class="nav-item-steps">Step 25–45</span>
+    </button>
+    <div class="nav-sub" id="sub-5">
+      <button class="nav-sub-item" data-anchor="step-25" onclick="navSubClick(5,this)">Step 25–26 — Settings → CI/CD</button>
+      <button class="nav-sub-item" data-anchor="step-27" onclick="navSubClick(5,this)">Step 27–28 — เปิด Variables</button>
+      <button class="nav-sub-item" data-anchor="step-29" onclick="navSubClick(5,this)">Step 29 — เลือก Visibility</button>
+      <button class="nav-sub-item" data-anchor="step-30" onclick="navSubClick(5,this)">Step 30–38 — เพิ่ม 3 Variables</button>
+      <button class="nav-sub-item" data-anchor="step-39" onclick="navSubClick(5,this)">Step 39–40 — ดูสถานะ Pipeline</button>
+      <button class="nav-sub-item" data-anchor="step-41" onclick="navSubClick(5,this)">Step 41–42 — Pipeline Detail</button>
+      <button class="nav-sub-item" data-anchor="step-43" onclick="navSubClick(5,this)">Step 43 — อ่าน Deploy Log</button>
+      <button class="nav-sub-item" data-anchor="step-44" onclick="navSubClick(5,this)">Step 44–45 — เปิดเว็บ! 🎉</button>
+    </div>
+
+    <!-- Progress at sidebar bottom -->
+    <div class="sidebar-progress">
+      <div class="sidebar-progress-label">
+        <span>ความคืบหน้า</span>
+        <span id="progress-text">1 / 5</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill" style="width:20%"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ============================= PAGE 1 ============================= -->
+    <div class="page active" id="page-1">
+      <div class="page-header">
+        <div class="page-part-label">Part 1</div>
+        <h1 class="page-title">Clone โปรเจค &amp; ตั้งค่าไฟล์พื้นฐาน</h1>
+        <p class="page-desc">เริ่มต้นด้วยการนำโปรเจคจาก GitLab มาไว้บนเครื่องของเรา จากนั้นสร้างไฟล์เว็บ (index.html) และไฟล์ตั้งค่า Web Server (nginx.conf) ซึ่งเป็นรากฐานสำคัญก่อนจะทำ CI/CD</p>
+        <div class="page-overview">
+          <div class="overview-chip"><span>⚡</span> git clone</div>
+          <div class="overview-chip"><span>📄</span> index.html</div>
+          <div class="overview-chip"><span>⚙️</span> nginx.conf</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-0">
+        <div class="step-header">
+          <div class="step-num">0</div>
+          <div class="step-content">
+            <div class="step-title">เปิดโปรเจคเก่าที่สร้างไว้ใน GitLab</div>
+            <div class="step-desc">เข้าไปที่ GitLab แล้วเลือกโปรเจค <code>my-project</code> ที่เคยสร้างไว้ในเวิร์กชอปก่อนหน้า ให้มั่นใจว่า Repository นี้มีอยู่และ login อยู่แล้ว</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/1.png" alt="GitLab project overview" loading="lazy" />
+          <div class="img-caption">📸 หน้า GitLab โปรเจค my-project</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-1">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">คลิกปุ่ม "Code" เพื่อดู URL ของ Repository</div>
+            <div class="step-desc">ที่หน้า Repository ให้กดปุ่ม <strong>Code</strong> (สีน้ำเงิน) เพื่อเปิด dropdown ที่มี URL สำหรับ clone โปรเจค</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/2.png" alt="Click Code button" loading="lazy" />
+          <div class="img-caption">📸 กดปุ่ม Code สีน้ำเงินด้านขวาของหน้า</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-2">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">คัดลอก URL ของ Repository</div>
+            <div class="step-desc">ใน dropdown ให้กดไอคอน <strong>Copy</strong> ที่อยู่ข้าง URL ใต้หัวข้อ "Clone with HTTPS" — URL มีรูปแบบ <code>https://gitlab.com/username/my-project.git</code></div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/3.png" alt="Copy repository URL" loading="lazy" />
+          <div class="img-caption">📸 คัดลอก URL สำหรับ git clone</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-3">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">เปิด Terminal แล้วรัน git clone</div>
+            <div class="step-desc">เปิด Terminal แล้วไปยัง folder ที่ต้องการเก็บโปรเจค จากนั้นรันคำสั่งด้านล่าง โดยแทนที่ URL ด้วยที่คัดลอกมา</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>git clone https://gitlab.com/<span class="nm">username</span>/my-project.git</pre>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <div><strong>git clone</strong> คือการดาวน์โหลดโค้ดทั้งหมดจาก GitLab มาไว้บนเครื่องของเรา พร้อมประวัติการแก้ไขทั้งหมด ทำให้เราสามารถทำงานบนเครื่องตัวเองได้</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/4.png" alt="git clone command" loading="lazy" />
+          <div class="img-caption">📸 รันคำสั่ง git clone ใน Terminal</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-4">
+        <div class="step-header">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">เข้าไปยังโฟลเดอร์โปรเจค</div>
+            <div class="step-desc">หลัง clone เสร็จ จะได้โฟลเดอร์ <code>my-project</code> มาใหม่ ให้ใช้คำสั่ง <code>cd</code> เพื่อเข้าไปข้างในโฟลเดอร์นั้น</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>cd my-project</pre>
+        </div>
+        <div class="step-image">
+          <img src="picture/5.png" alt="cd my-project" loading="lazy" />
+          <div class="img-caption">📸 cd เข้าไปยังโฟลเดอร์โปรเจค</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-5">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">เปิดโปรเจคด้วย VS Code</div>
+            <div class="step-desc">ใช้คำสั่ง <code>code .</code> (จุดหมายถึง "โฟลเดอร์ปัจจุบัน") เพื่อสั่งให้ VS Code เปิดโปรเจคที่เราอยู่ขึ้นมาทันที</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>code .</pre>
+        </div>
+        <div class="step-image">
+          <img src="picture/6.png" alt="Open VS Code" loading="lazy" />
+          <div class="img-caption">📸 VS Code เปิดขึ้นมาพร้อมโปรเจค</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-6">
+        <div class="step-header">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">สร้างไฟล์ index.html</div>
+            <div class="step-desc">ใน VS Code จะเห็นไฟล์ที่มีอยู่แล้วจากโปรเจค ให้คลิกขวาที่แถบ Explorer ด้านซ้าย แล้วเลือก <strong>New File</strong> จากนั้นตั้งชื่อไฟล์ว่า <code>index.html</code></div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/7.png" alt="Create index.html" loading="lazy" />
+          <div class="img-caption">📸 สร้างไฟล์ index.html ใน VS Code</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-7">
+        <div class="step-header">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-title">วางโค้ด Portfolio ลงใน index.html</div>
+            <div class="step-desc">เปิดไฟล์ <code>index.html</code> แล้วนำโค้ด HTML ของหน้า Portfolio ที่เคยทำไว้มาวาง — นี่คือ "หน้าเว็บ" ที่จะ deploy ขึ้น Server</div>
+          </div>
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">✅</span>
+          <div>ถ้ายังไม่มีโค้ด Portfolio สามารถใช้โค้ด HTML พื้นฐานไปก่อนได้ สิ่งสำคัญคือต้องมีไฟล์ <code>index.html</code> อยู่ในโปรเจค</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/8.png" alt="Paste portfolio code" loading="lazy" />
+          <div class="img-caption">📸 วางโค้ด HTML Portfolio ลงในไฟล์</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-8">
+        <div class="step-header">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <div class="step-title">สร้างไฟล์ nginx.conf</div>
+            <div class="step-desc">สร้างไฟล์ใหม่อีกไฟล์ชื่อ <code>nginx.conf</code> — ไฟล์นี้คือ "คู่มือ" บอก Nginx (Web Server) ว่าให้ทำงานอย่างไร</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/9.png" alt="Create nginx.conf" loading="lazy" />
+          <div class="img-caption">📸 สร้างไฟล์ nginx.conf</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-9">
+        <div class="step-header">
+          <div class="step-num">9</div>
+          <div class="step-content">
+            <div class="step-title">เขียน config ลงใน nginx.conf</div>
+            <div class="step-desc">วางโค้ดด้านล่างลงในไฟล์ <code>nginx.conf</code> — config นี้ทำ 3 สิ่ง: รับ request ที่พอร์ต 80 / ซ่อนเวอร์ชัน Nginx เพื่อความปลอดภัย / เปิด Gzip บีบอัดไฟล์ให้เว็บโหลดเร็วขึ้น</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Nginx Config</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="kw">server</span> {
+    <span class="nm">listen</span> <span class="vl">80</span>;
+    <span class="nm">server_name</span> <span class="st">localhost</span>;
+
+    <span class="cm"># ซ่อนเวอร์ชัน Nginx ไม่ให้ Hacker ทราบ</span>
+    <span class="nm">server_tokens</span> <span class="kw">off</span>;
+
+    <span class="nm">location</span> / {
+        <span class="nm">root</span>   <span class="st">/usr/share/nginx/html</span>;
+        <span class="nm">index</span>  <span class="st">index.html</span>;
+    }
+
+    <span class="cm"># เปิด Gzip: บีบอัดไฟล์ก่อนส่ง → เว็บโหลดเร็วขึ้นมาก</span>
+    <span class="nm">gzip</span> <span class="kw">on</span>;
+    <span class="nm">gzip_vary</span> <span class="kw">on</span>;
+    <span class="nm">gzip_min_length</span> <span class="vl">1024</span>;
+    <span class="nm">gzip_types</span> text/plain text/css application/json
+               application/javascript text/xml application/xml text/javascript;
+}</pre>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">🔒</span>
+          <div><strong>server_tokens off</strong> — ปกติ Nginx จะประกาศเวอร์ชันตัวเองใน HTTP header ซึ่ง Hacker ใช้หาช่องโหว่ได้ การปิดมันทำให้ปลอดภัยขึ้นโดยไม่ต้องทำอะไรเพิ่ม</div>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <button class="page-nav-btn" disabled>← ก่อนหน้า</button>
+        <button class="page-nav-btn primary" onclick="showPage(2)">ถัดไป: Docker &amp; Nginx →</button>
+      </div>
+    </div>
+
+    <!-- ============================= PAGE 2 ============================= -->
+    <div class="page" id="page-2">
+      <div class="page-header">
+        <div class="page-part-label">Part 2</div>
+        <h1 class="page-title">สร้าง Dockerfile &amp; Docker Compose</h1>
+        <p class="page-desc">Docker คือเครื่องมือที่ทำให้เว็บของเราทำงานได้ในทุก Server โดยไม่ต้องติดตั้งอะไรเพิ่ม เราจะสร้าง 2 ไฟล์ — <strong>Dockerfile</strong> (สูตรสร้าง Container) และ <strong>docker-compose.yml</strong> (วิธีรัน Container บน Server)</p>
+        <div class="page-overview">
+          <div class="overview-chip"><span>🐳</span> Dockerfile</div>
+          <div class="overview-chip"><span>🗂️</span> docker-compose.yml</div>
+          <div class="overview-chip"><span>🔢</span> Port Mapping</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-10">
+        <div class="step-header">
+          <div class="step-num">10</div>
+          <div class="step-content">
+            <div class="step-title">สร้างไฟล์ Dockerfile</div>
+            <div class="step-desc">สร้างไฟล์ใหม่ชื่อ <code>Dockerfile</code> (ตัว D ใหญ่ ไม่มีนามสกุล) ไฟล์นี้คือ "สูตร" บอก Docker ว่าจะสร้าง Image (กล่อง) ของเว็บเราออกมาอย่างไร</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/10.png" alt="Create Dockerfile" loading="lazy" />
+          <div class="img-caption">📸 สร้างไฟล์ Dockerfile ใน VS Code</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-11">
+        <div class="step-header">
+          <div class="step-num">11</div>
+          <div class="step-content">
+            <div class="step-title">เขียนโค้ดใน Dockerfile</div>
+            <div class="step-desc">วางโค้ดด้านล่างลงใน Dockerfile — Docker จะทำตามคำสั่งทีละบรรทัด: ดึง Nginx Alpine → ใส่ config → ใส่ไฟล์เว็บ → เปิดพอร์ต 80 รอรับ request</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Dockerfile</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="cm"># ใช้ Nginx เวอร์ชัน Alpine (ขนาดเล็กมาก ~5MB ประหยัดทรัพยากรสุดๆ)</span>
+<span class="kw">FROM</span> nginx:alpine
+
+<span class="cm"># เอาไฟล์ตั้งค่า Nginx ของเราไปทับค่า default ของระบบ</span>
+<span class="kw">COPY</span> nginx.conf /etc/nginx/conf.d/default.conf
+
+<span class="cm"># เอาไฟล์เว็บทั้งหมดไปไว้ใน folder ที่ Nginx แสดงผล</span>
+<span class="kw">COPY</span> . /usr/share/nginx/html
+
+<span class="cm"># เปิดพอร์ต 80 บน Container นี้ (พอร์ต HTTP มาตรฐาน)</span>
+<span class="kw">EXPOSE</span> <span class="vl">80</span>
+
+<span class="cm"># สั่งให้ Nginx ทำงาน foreground (ระบบจะรู้ว่ายัง alive อยู่)</span>
+<span class="kw">CMD</span> [<span class="st">"nginx"</span>, <span class="st">"-g"</span>, <span class="st">"daemon off;"</span>]</pre>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">🏔️</span>
+          <div><strong>nginx:alpine</strong> — Alpine Linux มีขนาดเพียง ~5MB (เทียบกับ Ubuntu ~70MB) ทำให้ Image มีขนาดเล็ก download เร็ว และมีช่องโหว่น้อยกว่า</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/11.png" alt="Dockerfile content" loading="lazy" />
+          <div class="img-caption">📸 โค้ด Dockerfile ใน VS Code</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-12">
+        <div class="step-header">
+          <div class="step-num">12</div>
+          <div class="step-content">
+            <div class="step-title">สร้างไฟล์ docker-compose.yml</div>
+            <div class="step-desc">สร้างไฟล์ชื่อ <code>docker-compose.yml</code> — ไฟล์นี้คือ "แผนผัง" บอกว่าจะรัน Container ของเว็บอย่างไรบน Server จริง ไฟล์นี้จะถูกส่งไปรันบน Server ในขั้นตอน Deploy</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/12.png" alt="Create docker-compose.yml" loading="lazy" />
+          <div class="img-caption">📸 สร้างไฟล์ docker-compose.yml</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-13">
+        <div class="step-header">
+          <div class="step-num">13</div>
+          <div class="step-content">
+            <div class="step-title">เขียนโค้ดใน docker-compose.yml</div>
+            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code>username</code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code>99xx</code> เป็น Port ที่ได้รับมอบหมาย</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">YAML</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="nm">services</span>:
+  <span class="nm">web</span>:
+    <span class="cm"># ดึง Image ที่ Build แล้วจาก GitLab Container Registry</span>
+    <span class="nm">image</span>: <span class="st">registry.gitlab.com/<span class="vl">username</span>/my-project:latest</span>
+    <span class="nm">container_name</span>: <span class="st">my_website</span>
+
+    <span class="nm">ports</span>:
+      <span class="cm"># [Port บน Server]:[Port ของ Container]</span>
+      <span class="cm"># เปลี่ยนเฉพาะฝั่งซ้าย (99xx) เป็น Port ที่ได้รับมอบหมาย</span>
+      - <span class="st">"<span class="vl">99xx</span>:80"</span>
+
+    <span class="cm"># รีสตาร์ทอัตโนมัติเสมอ (ยกเว้นถ้าเราสั่งหยุดเอง)</span>
+    <span class="nm">restart</span>: <span class="kw">unless-stopped</span>
+
+    <span class="cm"># จำกัดขนาด Log ไม่ให้กิน Disk จนเต็ม</span>
+    <span class="nm">logging</span>:
+      <span class="nm">driver</span>: <span class="st">"json-file"</span>
+      <span class="nm">options</span>:
+        <span class="nm">max-size</span>: <span class="st">"10m"</span>
+        <span class="nm">max-file</span>: <span class="st">"3"</span></pre>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <div>อย่าลืมเปลี่ยน <code>username</code> เป็น GitLab username ของคุณ และ <code>99xx</code> เป็น Port ที่ได้รับมอบหมาย มิฉะนั้น Deploy จะ Error</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/13.png" alt="docker-compose.yml content" loading="lazy" />
+          <div class="img-caption">📸 โค้ด docker-compose.yml ใน VS Code</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-14">
+        <div class="step-header">
+          <div class="step-num">14</div>
+          <div class="step-content">
+            <div class="step-title">ตรวจสอบ GitLab Username และ Port ให้ถูกต้อง</div>
+            <div class="step-desc">ก่อนไปขั้นต่อไป ตรวจสอบ 2 จุดในไฟล์ <code>docker-compose.yml</code> ให้แน่ใจ:</div>
+          </div>
+        </div>
+        <table class="var-table">
+          <thead>
+            <tr>
+              <th>จุดที่ต้องแก้</th>
+              <th>ตัวอย่างก่อนแก้</th>
+              <th>ตัวอย่างหลังแก้</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GitLab Username</td>
+              <td><code>username</code></td>
+              <td><code class="val">yourname</code></td>
+            </tr>
+            <tr>
+              <td>Port Number</td>
+              <td><code>99xx:80</code></td>
+              <td><code class="val">9901:80</code> (ใส่เลขที่คุณได้)</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="step-image">
+          <img src="picture/14.png" alt="Edit username and port" loading="lazy" />
+          <div class="img-caption">📸 แก้ชื่อ GitLab และหมายเลข Port ให้ถูกต้อง</div>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <button class="page-nav-btn" onclick="showPage(1)">← Clone &amp; ตั้งค่าไฟล์</button>
+        <button class="page-nav-btn primary" onclick="showPage(3)">ถัดไป: CI/CD Pipeline →</button>
+      </div>
+    </div>
+
+    <!-- ============================= PAGE 3 ============================= -->
+    <div class="page" id="page-3">
+      <div class="page-header">
+        <div class="page-part-label">Part 3</div>
+        <h1 class="page-title">ตั้งค่า CI/CD Pipeline</h1>
+        <p class="page-desc">CI/CD Pipeline คือระบบอัตโนมัติที่ทำงานทุกครั้งที่เรา push โค้ดขึ้น GitLab — มันจะ <strong>Build</strong> โค้ดให้เป็น Docker Image, <strong>Test</strong> ว่าไฟล์ HTML ถูกต้อง, แล้ว <strong>Deploy</strong> ขึ้น Server โดยอัตโนมัติ ไม่ต้องทำเองสักขั้นตอน</p>
+        <div class="page-overview">
+          <div class="overview-chip"><span>🔨</span> Build</div>
+          <div class="overview-chip"><span>🧪</span> Test</div>
+          <div class="overview-chip"><span>🚀</span> Deploy</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-15">
+        <div class="step-header">
+          <div class="step-num">15</div>
+          <div class="step-content">
+            <div class="step-title">เปิดไฟล์ .gitlab-ci.yml</div>
+            <div class="step-desc">ไฟล์ <code>.gitlab-ci.yml</code> คือ "สมองกล" ของ CI/CD — GitLab จะอ่านไฟล์นี้และทำงานตามคำสั่งทุกครั้งที่มีการ push โค้ด เราเคยสร้างไว้แล้วในเวิร์กชอปก่อนหน้า ให้เปิดขึ้นมา</div>
+          </div>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">📌</span>
+          <div>ชื่อไฟล์นี้ขึ้นต้นด้วย <code>.</code> (จุด) ทำให้ซ่อนอยู่บน Linux/Mac ถ้าหาไม่เจอใน VS Code ให้กด <strong>Cmd+Shift+P</strong> แล้วพิมพ์ชื่อไฟล์ค้นหา</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/15.png" alt="Open .gitlab-ci.yml" loading="lazy" />
+          <div class="img-caption">📸 เปิดไฟล์ .gitlab-ci.yml ใน VS Code</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-16">
+        <div class="step-header">
+          <div class="step-num">16</div>
+          <div class="step-content">
+            <div class="step-title">เขียน Pipeline 3 ขั้นตอน</div>
+            <div class="step-desc">วาง config ด้านล่างลงในไฟล์ Pipeline จะมี 3 ขั้นตอนที่ทำงานต่อกันโดยอัตโนมัติเมื่อ push โค้ดขึ้น branch <code>main</code></div>
+          </div>
+        </div>
+
+        <div class="pipeline">
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🔨</div>
+            <div class="pipeline-stage-name">1. Build</div>
+            <div class="pipeline-stage-desc">สร้าง Docker Image แล้วดันขึ้น GitLab Registry</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🧪</div>
+            <div class="pipeline-stage-name">2. Test</div>
+            <div class="pipeline-stage-desc">ตรวจสอบความถูกต้องของ HTML ด้วย tidy</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-stage">
+            <div class="pipeline-stage-icon">🚀</div>
+            <div class="pipeline-stage-name">3. Deploy</div>
+            <div class="pipeline-stage-desc">SSH เข้า Server สั่งดึง Image มารันอัตโนมัติ</div>
+          </div>
+        </div>
+
+        <div class="code-block" style="margin-top:16px; margin-left:46px;">
+          <div class="code-block-header">
+            <span class="code-block-lang">YAML — .gitlab-ci.yml</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="nm">stages</span>:
+  - <span class="st">build</span>
+  - <span class="st">test</span>
+  - <span class="st">deploy</span>
+
+<span class="nm">variables</span>:
+  <span class="cm"># ตั้งชื่อ Image ให้เป็นมาตรฐาน โดย GitLab จะเติมข้อมูลให้อัตโนมัติ</span>
+  <span class="nm">IMAGE_TAG</span>: <span class="st">$CI_REGISTRY_IMAGE:latest</span>
+
+<span class="cm"># ==========================================</span>
+<span class="cm"># 1. BUILD: สร้าง Docker Image → ดันขึ้นโกดัง GitLab</span>
+<span class="cm"># ==========================================</span>
+<span class="nm">build</span>:
+  <span class="nm">stage</span>: <span class="st">build</span>
+  <span class="nm">image</span>: <span class="st">docker:24</span>
+  <span class="nm">services</span>:
+    - <span class="st">docker:24-dind</span>    <span class="cm"># Docker-in-Docker: รัน Docker ภายใน Runner</span>
+  <span class="nm">script</span>:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG .  <span class="cm"># สร้าง Image จาก Dockerfile</span>
+    - docker push $IMAGE_TAG         <span class="cm"># ส่ง Image ขึ้น GitLab Registry</span>
+  <span class="nm">only</span>:
+    - <span class="st">main</span>  <span class="cm"># ทำงานเฉพาะเมื่อ push ไปที่ branch main</span>
+
+<span class="cm"># ==========================================</span>
+<span class="cm"># 2. TEST: ตรวจสอบ HTML ว่า syntax ถูกต้องไหม</span>
+<span class="cm"># ==========================================</span>
+<span class="nm">test</span>:
+  <span class="nm">stage</span>: <span class="st">test</span>
+  <span class="nm">image</span>: <span class="st">alpine:latest</span>
+  <span class="nm">needs</span>: [<span class="st">"build"</span>]  <span class="cm"># รอให้ Build เสร็จก่อน</span>
+  <span class="nm">script</span>:
+    - apk add --no-cache tidyhtml  <span class="cm"># ติดตั้ง HTML validator</span>
+    - tidy -q -e index.html; [ $? -le 1 ]
+  <span class="nm">only</span>:
+    - <span class="st">main</span>
+
+<span class="cm"># ==========================================</span>
+<span class="cm"># 3. DEPLOY: SSH เข้า Server → ดึง Image → รันเว็บ</span>
+<span class="cm"># ==========================================</span>
+<span class="nm">deploy</span>:
+  <span class="nm">stage</span>: <span class="st">deploy</span>
+  <span class="nm">image</span>: <span class="st">alpine:latest</span>
+  <span class="nm">needs</span>: [<span class="st">"test"</span>]  <span class="cm"># รอให้ Test ผ่านก่อน</span>
+  <span class="nm">before_script</span>:
+    - apk add --no-cache openssh-client sshpass
+  <span class="nm">script</span>:
+    <span class="cm"># สร้างโฟลเดอร์รอไว้บน Server</span>
+    - sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no
+      "$SERVER_USER@$SERVER_IP" "mkdir -p ~/deploys/$CI_PROJECT_PATH_SLUG"
+
+    <span class="cm"># ส่งไฟล์ docker-compose.yml ข้ามอินเทอร์เน็ตไปวางที่ Server</span>
+    - sshpass -p "$SERVER_PASSWORD" scp -o StrictHostKeyChecking=no
+      docker-compose.yml $SERVER_USER@$SERVER_IP:~/deploys/$CI_PROJECT_PATH_SLUG/
+
+    <span class="cm"># สั่ง Server: login GitLab → ดึง Image ใหม่ → รันเว็บ</span>
+    - >
+      sshpass -p "$SERVER_PASSWORD" ssh -o StrictHostKeyChecking=no
+      "$SERVER_USER@$SERVER_IP" "
+      cd ~/deploys/$CI_PROJECT_PATH_SLUG &&
+      docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+      docker compose pull &&
+      docker compose up -d
+      "
+  <span class="nm">only</span>:
+    - <span class="st">main</span></pre>
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">🔐</span>
+          <div>ตัวแปรอย่าง <code>$SERVER_PASSWORD</code>, <code>$SERVER_IP</code>, <code>$SERVER_USER</code> จะถูกตั้งค่าใน GitLab Settings ในขั้นตอนถัดไป — ไม่ต้องพิมพ์ข้อมูลจริงลงในโค้ดให้ปลอดภัยกว่า</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/16.png" alt=".gitlab-ci.yml content" loading="lazy" />
+          <div class="img-caption">📸 โค้ด .gitlab-ci.yml ครบทั้ง 3 stage ใน VS Code</div>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <button class="page-nav-btn" onclick="showPage(2)">← Docker &amp; Nginx</button>
+        <button class="page-nav-btn primary" onclick="showPage(4)">ถัดไป: Push &amp; ตรวจสอบ →</button>
+      </div>
+    </div>
+
+    <!-- ============================= PAGE 4 ============================= -->
+    <div class="page" id="page-4">
+      <div class="page-header">
+        <div class="page-part-label">Part 4</div>
+        <h1 class="page-title">Push โค้ดขึ้น GitLab &amp; ตรวจสอบ Pipeline</h1>
+        <p class="page-desc">เมื่อสร้างไฟล์ทั้งหมดครบแล้ว ถึงเวลา push โค้ดขึ้น GitLab ซึ่งจะ trigger Pipeline ให้ทำงานอัตโนมัติ จากนั้นตรวจสอบว่าทุกอย่างทำงานถูกต้อง</p>
+        <div class="page-overview">
+          <div class="overview-chip"><span>📦</span> git add</div>
+          <div class="overview-chip"><span>💾</span> git commit</div>
+          <div class="overview-chip"><span>⬆️</span> git push</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-17">
+        <div class="step-header">
+          <div class="step-num">17</div>
+          <div class="step-content">
+            <div class="step-title">เปิด Terminal ใน VS Code</div>
+            <div class="step-desc">คลิกที่เมนู <strong>Terminal</strong> ด้านบน จากนั้นเลือก <strong>New Terminal</strong> เพื่อเปิด Terminal ขึ้นมาภายใน VS Code โดยไม่ต้องออกจากโปรแกรม</div>
+          </div>
+        </div>
+        <div class="step-images-row">
+          <div class="step-image">
+            <img src="picture/17.png" alt="Click Terminal menu" loading="lazy" />
+            <div class="img-caption">📸 คลิกเมนู Terminal ด้านบน</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/18.png" alt="New Terminal" loading="lazy" />
+            <div class="img-caption">📸 เลือก New Terminal</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-19">
+        <div class="step-header">
+          <div class="step-num">19</div>
+          <div class="step-content">
+            <div class="step-title">git add . — เพิ่มไฟล์ทั้งหมดเข้า Staging Area</div>
+            <div class="step-desc"><code>git add .</code> (จุดข้างหลัง) หมายถึง "เพิ่มไฟล์ที่แก้ไขทั้งหมดในโฟลเดอร์นี้" เข้า Staging Area — คิดว่าเหมือนการ "หยิบของใส่กล่อง" รอก่อนส่ง</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>git add .</pre>
+        </div>
+        <div class="step-image">
+          <img src="picture/19.png" alt="git add ." loading="lazy" />
+          <div class="img-caption">📸 รัน git add . ใน Terminal</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-20">
+        <div class="step-header">
+          <div class="step-num">20</div>
+          <div class="step-content">
+            <div class="step-title">git commit — บันทึก snapshot ของโค้ด</div>
+            <div class="step-desc"><code>git commit</code> คือการบันทึก "ภาพถ่าย" ของโค้ด ณ เวลานี้ พร้อมข้อความอธิบายว่าทำอะไรไป — <code>-m</code> ย่อมาจาก message</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>git commit -m <span class="st">"feat: Add index, Dockerfile, docker-compose, gitlab-ci, nginx"</span></pre>
+        </div>
+        <div class="step-image">
+          <img src="picture/20.png" alt="git commit" loading="lazy" />
+          <div class="img-caption">📸 รัน git commit พร้อม message</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-21">
+        <div class="step-header">
+          <div class="step-num">21</div>
+          <div class="step-content">
+            <div class="step-title">เปลี่ยนชื่อ branch เป็น main</div>
+            <div class="step-desc">ในไฟล์ <code>.gitlab-ci.yml</code> เราระบุว่า Pipeline ทำงานเฉพาะ branch <code>main</code> เท่านั้น ดังนั้นต้องมั่นใจว่า branch ปัจจุบันชื่อ <code>main</code> ก่อน push</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>git branch -m main</pre>
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">🌿</span>
+          <div><code>git branch -m main</code> คือการ "rename" branch ปัจจุบันให้ชื่อ <code>main</code> — ถ้า branch ชื่อ main อยู่แล้วก็ไม่มีผลอะไร แค่ทำให้แน่ใจ</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/21.png" alt="git branch -m main" loading="lazy" />
+          <div class="img-caption">📸 เปลี่ยนชื่อ branch เป็น main</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-22">
+        <div class="step-header">
+          <div class="step-num">22</div>
+          <div class="step-content">
+            <div class="step-title">git push — ส่งโค้ดขึ้น GitLab</div>
+            <div class="step-desc">คำสั่งนี้ส่งโค้ดทั้งหมดที่ commit ไว้ขึ้น GitLab และตั้ง upstream tracking ให้ด้วย (<code>-u</code> ย่อมาจาก upstream) เพื่อให้ครั้งต่อไปพิมพ์แค่ <code>git push</code> ได้เลย</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">Bash</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>git push -u origin main</pre>
+        </div>
+        <div class="step-images-row">
+          <div class="step-image">
+            <img src="picture/22.png" alt="git push" loading="lazy" />
+            <div class="img-caption">📸 รัน git push -u origin main</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/23.png" alt="Push result" loading="lazy" />
+            <div class="img-caption">📸 ผลหลัง push สำเร็จ</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-24">
+        <div class="step-header">
+          <div class="step-num">24</div>
+          <div class="step-content">
+            <div class="step-title">กลับไป GitLab — ดู Pipeline เริ่มทำงาน</div>
+            <div class="step-desc">กลับไปที่ GitLab และเข้าโปรเจค <code>my-project</code> จะเห็นไฟล์ที่เรา push ขึ้นมาแล้ว และสังเกตที่ commit ล่าสุดจะมี <strong>ไอคอนกลม</strong> สีส้ม/เหลืองข้างๆ แสดงว่า Pipeline กำลังทำงานอยู่</div>
+          </div>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⏳</span>
+          <div>ตอนนี้ Pipeline อาจ <strong>Error</strong> อยู่ เพราะเรายังไม่ได้กำหนด Variables ที่จำเป็น เดี๋ยวเราจะทำในขั้นตอนถัดไป ไม่ต้องตกใจ!</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/24.png" alt="GitLab pipeline running" loading="lazy" />
+          <div class="img-caption">📸 ไอคอนกลมข้าง commit แสดงสถานะ Pipeline</div>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <button class="page-nav-btn" onclick="showPage(3)">← CI/CD Pipeline</button>
+        <button class="page-nav-btn primary" onclick="showPage(5)">ถัดไป: Variables &amp; Deploy →</button>
+      </div>
+    </div>
+
+    <!-- ============================= PAGE 5 ============================= -->
+    <div class="page" id="page-5">
+      <div class="page-header">
+        <div class="page-part-label">Part 5</div>
+        <h1 class="page-title">ตั้งค่า Variables &amp; ดูผลการ Deploy</h1>
+        <p class="page-desc">Pipeline ต้องการข้อมูล Server (IP, Username, Password) เพื่อ SSH เข้าไป Deploy เราจะเพิ่มข้อมูลเหล่านี้ใน GitLab Settings แบบปลอดภัย ไม่ต้องเขียนในโค้ด</p>
+        <div class="page-overview">
+          <div class="overview-chip"><span>🌐</span> SERVER_IP</div>
+          <div class="overview-chip"><span>👤</span> SERVER_USER</div>
+          <div class="overview-chip"><span>🔒</span> SERVER_PASSWORD</div>
+        </div>
+      </div>
+
+      <div class="step" id="step-25">
+        <div class="step-header">
+          <div class="step-num">25</div>
+          <div class="step-content">
+            <div class="step-title">ไปที่ Settings ของโปรเจค</div>
+            <div class="step-desc">ที่แถบเมนูซ้ายของ GitLab โปรเจค เลือก <strong>Settings</strong> เพื่อเข้าสู่หน้าตั้งค่าโปรเจค</div>
+          </div>
+        </div>
+        <div class="step-images-row">
+          <div class="step-image">
+            <img src="picture/25.png" alt="Settings menu" loading="lazy" />
+            <div class="img-caption">📸 เลือก Settings ในเมนูซ้าย</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/26.png" alt="CI/CD settings" loading="lazy" />
+            <div class="img-caption">📸 เลือก CI/CD ในเมนูย่อย</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-27">
+        <div class="step-header">
+          <div class="step-num">27</div>
+          <div class="step-content">
+            <div class="step-title">เปิดหัวข้อ Variables และกด Add variable</div>
+            <div class="step-desc">เลื่อนลงมาหาหัวข้อ <strong>Variables</strong> แล้วกด <strong>Expand</strong> เพื่อขยาย จากนั้นกดปุ่ม <strong>Add variable</strong> เพื่อเพิ่มตัวแปรใหม่</div>
+          </div>
+        </div>
+        <div class="step-images-row">
+          <div class="step-image">
+            <img src="picture/27.png" alt="Variables section" loading="lazy" />
+            <div class="img-caption">📸 หัวข้อ Variables ใน CI/CD Settings</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/28.png" alt="Add variable button" loading="lazy" />
+            <div class="img-caption">📸 กดปุ่ม Add variable</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-29">
+        <div class="step-header">
+          <div class="step-num">29</div>
+          <div class="step-content">
+            <div class="step-title">เลือก Visibility เป็น "Visible"</div>
+            <div class="step-desc">ในฟอร์มเพิ่มตัวแปร มีตัวเลือก Visibility ให้เลือก <strong>Visible</strong> สำหรับตัวแปรทั่วไป หรือ <strong>Masked</strong> เพื่อซ่อนค่าใน log (แนะนำสำหรับ password)</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/29.png" alt="Select visibility" loading="lazy" />
+          <div class="img-caption">📸 เลือก Type และ Visibility ของตัวแปร</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-30">
+        <div class="step-header">
+          <div class="step-num">30</div>
+          <div class="step-content">
+            <div class="step-title">เพิ่ม Variables ทั้ง 3 ตัว</div>
+            <div class="step-desc">ต้องเพิ่มตัวแปร 3 ตัวให้ครบ — ทำซ้ำขั้นตอน "Add variable" สำหรับแต่ละตัว โดยเปลี่ยน Key และ Value ตามตารางด้านล่าง</div>
+          </div>
+        </div>
+        <table class="var-table">
+          <thead>
+            <tr>
+              <th>Key (ชื่อตัวแปร)</th>
+              <th>Value (ค่า)</th>
+              <th>คำอธิบาย</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>SERVER_IP</code></td>
+              <td><span class="val">49.229.108.152</span></td>
+              <td>IP Address ของ Server</td>
+            </tr>
+            <tr>
+              <td><code>SERVER_USER</code></td>
+              <td><span class="val">user</span></td>
+              <td>Username สำหรับ login เข้า Server</td>
+            </tr>
+            <tr>
+              <td><code>SERVER_PASSWORD</code></td>
+              <td><span class="val">9875321</span></td>
+              <td>Password สำหรับ login เข้า Server</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warn">
+          <span class="callout-icon">🔐</span>
+          <div>ในการใช้งานจริง ควรตั้งค่า <code>SERVER_PASSWORD</code> เป็น <strong>Masked</strong> เพื่อซ่อน password ไม่ให้แสดงใน CI/CD log</div>
+        </div>
+
+        <div class="grid-3">
+          <div class="step-image">
+            <img src="picture/30.png" alt="Add SERVER_IP" loading="lazy" />
+            <div class="img-caption">Step 30 — เพิ่ม SERVER_IP</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/31.png" alt="SERVER_IP saved" loading="lazy" />
+            <div class="img-caption">Step 31 — SERVER_IP บันทึกแล้ว</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/32.png" alt="Add SERVER_USER" loading="lazy" />
+            <div class="img-caption">Step 32 — เพิ่ม SERVER_USER</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/33.png" alt="SERVER_USER form" loading="lazy" />
+            <div class="img-caption">Step 33 — กรอก Value</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/34.png" alt="SERVER_USER check" loading="lazy" />
+            <div class="img-caption">Step 34 — ตรวจสอบก่อนบันทึก</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/35.png" alt="SERVER_USER saved" loading="lazy" />
+            <div class="img-caption">Step 35 — SERVER_USER บันทึกแล้ว</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/36.png" alt="Add SERVER_PASSWORD" loading="lazy" />
+            <div class="img-caption">Step 36 — เพิ่ม SERVER_PASSWORD</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/37.png" alt="SERVER_PASSWORD form" loading="lazy" />
+            <div class="img-caption">Step 37 — กรอก Password</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/38.png" alt="All variables saved" loading="lazy" />
+            <div class="img-caption">Step 38 — ตัวแปรครบทั้ง 3 ตัว ✅</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-39">
+        <div class="step-header">
+          <div class="step-num">39</div>
+          <div class="step-content">
+            <div class="step-title">กลับไปที่โปรเจค my-project</div>
+            <div class="step-desc">ที่เมนูด้านซ้าย เลื่อนขึ้นไปด้านบนแล้วคลิกชื่อ <strong>my-project</strong> เพื่อกลับไปหน้าหลักของโปรเจค</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/39.png" alt="Back to project" loading="lazy" />
+          <div class="img-caption">📸 คลิกชื่อโปรเจคเพื่อกลับหน้าหลัก</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-40">
+        <div class="step-header">
+          <div class="step-num">40</div>
+          <div class="step-content">
+            <div class="step-title">ตรวจสอบสถานะ Pipeline</div>
+            <div class="step-desc">หน้าโปรเจคจะแสดง commit ล่าสุด ให้สังเกตไอคอนข้างๆ commit hash:<br/>
+              <span class="badge warn">🟡 กำลังรัน</span> → รอสักครู่ &nbsp;|&nbsp;
+              <span class="badge success">✅ สำเร็จ</span> → เรียบร้อยแล้ว &nbsp;|&nbsp;
+              ❌ → ให้กด Retry
+            </div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/40.png" alt="Pipeline status" loading="lazy" />
+          <div class="img-caption">📸 ดูสถานะ Pipeline จากไอคอนข้าง commit</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-41">
+        <div class="step-header">
+          <div class="step-num">41</div>
+          <div class="step-content">
+            <div class="step-title">คลิกดู Pipeline Detail &amp; เลือก stage deploy</div>
+            <div class="step-desc">กดที่ไอคอน Pipeline เพื่อดูรายละเอียด จะเห็น 3 stage เรียงกัน ถ้าทั้ง 3 สีเขียวหมด = สำเร็จ! จากนั้นคลิกที่ stage <strong>deploy</strong> เพื่อดู log การทำงาน</div>
+          </div>
+        </div>
+        <div class="step-images-row">
+          <div class="step-image">
+            <img src="picture/41.png" alt="Pipeline stages" loading="lazy" />
+            <div class="img-caption">📸 ทั้ง 3 stage สีเขียว = สำเร็จ ✅</div>
+          </div>
+          <div class="step-image">
+            <img src="picture/42.png" alt="Click deploy stage" loading="lazy" />
+            <div class="img-caption">📸 คลิกดู stage deploy</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-43">
+        <div class="step-header">
+          <div class="step-num">43</div>
+          <div class="step-content">
+            <div class="step-title">อ่าน Deploy Log</div>
+            <div class="step-desc">จะเห็น log การทำงานแบบ real-time: ติดตั้ง SSH → เชื่อมต่อ Server → login GitLab Registry → ดึง Image → รัน Container — ถ้าสำเร็จจะขึ้น <code>Job succeeded</code> บรรทัดสุดท้าย</div>
+          </div>
+        </div>
+        <div class="log-block"><span class="log-info">$ apk add --no-cache openssh-client sshpass</span>
+(1/7) Installing openssh-keygen ...
+OK: 11.8 MiB in 23 packages
+
+<span class="log-info">$ sshpass -p "$SERVER_PASSWORD" ssh ... "mkdir -p ~/deploys/..."</span>
+Warning: Permanently added '[MASKED]' (ED25519) to known hosts.
+
+<span class="log-info">$ docker login ... && docker compose pull && docker compose up -d</span>
+<span class="log-success">Login Succeeded</span>
+ Image registry.gitlab.com/username/my-project:latest Pulling
+ 6ca27e509c31 Pull complete
+ d9cb6464796a Pull complete
+ Image registry.gitlab.com/username/my-project:latest Pulled
+ Container my_website Recreated
+ Container my_website Started
+
+Cleaning up project directory and file based variables
+<span class="log-success">Job succeeded</span></div>
+        <div class="callout tip">
+          <span class="callout-icon">📋</span>
+          <div>เห็น <strong>"Job succeeded"</strong> บรรทัดสุดท้าย = สำเร็จ 🎉 | เห็น "Job failed" = กด <strong>Retry</strong> ที่ด้านบนขวา แล้วรอดูอีกรอบ</div>
+        </div>
+        <div class="step-image">
+          <img src="picture/43.png" alt="Deploy log" loading="lazy" />
+          <div class="img-caption">📸 Deploy log แสดง Job succeeded</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-44">
+        <div class="step-header">
+          <div class="step-num">44</div>
+          <div class="step-content">
+            <div class="step-title">เปิดเว็บผ่าน Browser!</div>
+            <div class="step-desc">เปิด Browser แล้วพิมพ์ IP และ Port ของ Server ในรูปแบบ <code>IP:Port</code> จากนั้นกด Enter</div>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">URL</span>
+            <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>49.229.108.152:<span class="vl">99xx</span>   ← เปลี่ยน 99xx เป็นเลข Port ของคุณ</pre>
+        </div>
+        <div class="step-image">
+          <img src="picture/44.png" alt="Open in browser" loading="lazy" />
+          <div class="img-caption">📸 พิมพ์ IP:Port ใน Browser แล้วกด Enter</div>
+        </div>
+      </div>
+
+      <hr class="step-divider" />
+
+      <div class="step" id="step-45">
+        <div class="step-header">
+          <div class="step-num">45</div>
+          <div class="step-content">
+            <div class="step-title">🎉 เว็บ Portfolio แสดงผลบน Server แล้ว!</div>
+            <div class="step-desc">ถ้าทำตามทุกขั้นตอนถูกต้อง คุณจะเห็นหน้า Portfolio แสดงบนหน้าจอ — เว็บนี้รันอยู่บน Server จริง ผ่าน Docker + Nginx ที่ Deploy อัตโนมัติด้วย GitLab CI/CD</div>
+          </div>
+        </div>
+        <div class="step-image">
+          <img src="picture/45.png" alt="Website live" loading="lazy" />
+          <div class="img-caption">📸 หน้าเว็บ Portfolio แสดงผลบน Server เรียบร้อยแล้ว 🚀</div>
+        </div>
+        <div class="final-card">
+          <div class="final-icon">🎊</div>
+          <h3>Workshop สำเร็จแล้ว!</h3>
+          <p>คุณ build ระบบ CI/CD Pipeline ครบวงจรด้วย GitLab, Docker, Nginx และ SSH Deploy สำเร็จแล้ว — ทุกครั้งที่ push โค้ดใหม่ขึ้น branch main ระบบจะ deploy อัตโนมัติโดยไม่ต้องทำเองสักขั้นตอน 💪</p>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <button class="page-nav-btn" onclick="showPage(4)">← Push &amp; ตรวจสอบ</button>
+        <button class="page-nav-btn" disabled>จบ Workshop ✅</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let currentPage = 1;
+
+  function updateProgress(num) {
+    const pct = Math.round((num / 5) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = num + ' / 5';
+  }
+
+  function showPage(num, skipScroll) {
+    // Switch pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + num).classList.add('active');
+
+    // Highlight main nav item
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + num).classList.add('active');
+
+    // Clear sub-item highlights
+    document.querySelectorAll('.nav-sub-item').forEach(s => s.classList.remove('sub-active'));
+
+    // Topbar
+    document.getElementById('topbar-steps').textContent = 'Part ' + num + ' of 5';
+
+    // Progress
+    updateProgress(num);
+
+    currentPage = num;
+    if (!skipScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Called when a sub-item is clicked — navigate to page then scroll to the specific step
+  function navSubClick(pageNum, el) {
+    const anchor = el.dataset.anchor;
+
+    // Pause scroll spy so it doesn't fight the click highlight
+    pauseSpy(1000);
+
+    // Highlight immediately (no sidebar scroll — user is already looking at it)
+    document.querySelectorAll('.nav-sub-item').forEach(s => s.classList.remove('sub-active'));
+    el.classList.add('sub-active');
+
+    // Switch page if needed (without scroll-to-top)
+    if (currentPage !== pageNum) {
+      showPage(pageNum, true);
+    }
+
+    // Scroll to the step
+    if (anchor) {
+      setTimeout(() => {
+        const target = document.getElementById(anchor);
+        if (target) {
+          const topOffset = target.getBoundingClientRect().top + window.scrollY - 76;
+          window.scrollTo({ top: topOffset, behavior: 'smooth' });
+        }
+      }, 50);
+    }
+  }
+
+  /* ===== LIGHTBOX ===== */
+  function openLightbox(img) {
+    const overlay = document.getElementById('lightbox-overlay');
+    const lbImg   = document.getElementById('lightbox-img');
+    const lbCap   = document.getElementById('lightbox-caption');
+    lbImg.src = img.src;
+    lbImg.alt = img.alt;
+    lbCap.textContent = img.closest('.step-image')?.querySelector('.img-caption')?.textContent || '';
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  // Close on overlay click (outside image)
+  document.getElementById('lightbox-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+  // Close on Esc
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText || pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // Keyboard navigation (← → arrow keys)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && currentPage < 5) showPage(currentPage + 1);
+    if (e.key === 'ArrowLeft'  && currentPage > 1) showPage(currentPage - 1);
+  });
+</script>
+
+<!-- LIGHTBOX MODAL -->
+<div class="lightbox-overlay" id="lightbox-overlay">
+  <button class="lightbox-close" onclick="closeLightbox()" title="ปิด">✕</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<script>
+  // Auto-attach lightbox to all step images
+  document.querySelectorAll('.step-image img').forEach(img => {
+    img.addEventListener('click', () => openLightbox(img));
+  });
+
+  /* ===== SCROLL SPY ===== */
+  let spyPaused = false;   // paused during programmatic scroll from click
+  let spyTimer  = null;
+
+  function pauseSpy(ms = 900) {
+    spyPaused = true;
+    clearTimeout(spyTimer);
+    spyTimer = setTimeout(() => { spyPaused = false; }, ms);
+  }
+
+  // Map step ID → sidebar sub-item button
+  function buildSpyMap() {
+    const map = new Map();
+    document.querySelectorAll('.nav-sub-item[data-anchor]').forEach(btn => {
+      const anchor = btn.dataset.anchor;
+      if (!map.has(anchor)) map.set(anchor, btn);
+    });
+    return map;
+  }
+
+  function activateSubItem(btn, scrollSidebar) {
+    document.querySelectorAll('.nav-sub-item').forEach(s => s.classList.remove('sub-active'));
+    if (!btn) return;
+    btn.classList.add('sub-active');
+    if (scrollSidebar) {
+      btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function initScrollSpy() {
+    const spyMap = buildSpyMap();
+    const steps  = Array.from(document.querySelectorAll('.step[id]'));
+    if (!steps.length) return;
+
+    const visible = new Set();
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) visible.add(entry.target.id);
+        else visible.delete(entry.target.id);
+      });
+
+      // Skip if user just clicked a nav item — let it settle first
+      if (spyPaused || visible.size === 0) return;
+
+      // Pick the topmost visible step
+      let topStep = null, topY = Infinity;
+      visible.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const y = el.getBoundingClientRect().top;
+          if (y < topY) { topY = y; topStep = id; }
+        }
+      });
+
+      if (topStep && spyMap.has(topStep)) {
+        activateSubItem(spyMap.get(topStep), true); // sidebar scrolls with spy
+      }
+    }, {
+      rootMargin: '-64px 0px -55% 0px',
+      threshold: 0
+    });
+
+    steps.forEach(el => observer.observe(el));
+  }
+
+  initScrollSpy();
+</script>
+</body>
+</html>
