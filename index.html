@@ -694,6 +694,34 @@
       .page-title { font-size: 22px; }
       .grid-3 { grid-template-columns: 1fr 1fr; }
     }
+
+    /* USER REPLACE HIGHLIGHT */
+    @keyframes pulse-warning {
+      0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.8); background-color: #ff5722; color: #fff; transform: scale(1); }
+      50% { box-shadow: 0 0 0 8px rgba(255, 87, 34, 0); background-color: #ff9800; color: #fff; transform: scale(1.05); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); background-color: #ff5722; color: #fff; transform: scale(1); }
+    }
+    .user-replace {
+      display: inline-block;
+      animation: pulse-warning 1.5s infinite;
+      border-radius: 4px;
+      padding: 0 6px;
+      margin: 0 2px;
+      font-weight: 900;
+      border: 1px solid #fff;
+    }
+    .callout.important-replace {
+      background: rgba(255, 87, 34, 0.1);
+      border-left: 4px solid #ff5722;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 16px 0;
+      color: #fff;
+    }
+    .callout.important-replace strong {
+      color: #ff5722;
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body>
@@ -874,7 +902,7 @@
             <span class="code-block-lang">Bash</span>
             <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
           </div>
-          <pre>git clone https://gitlab.com/<span class="nm">username</span>/my-project.git</pre>
+          <pre>git clone https://gitlab.com/<span class="user-replace">username</span>/my-project.git</pre>
         </div>
         <div class="callout info">
           <span class="callout-icon">💡</span>
@@ -1125,7 +1153,7 @@
           <div class="step-num">13</div>
           <div class="step-content">
             <div class="step-title">เขียนโค้ดใน docker-compose.yml</div>
-            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code>username</code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code>99xx</code> เป็น Port ที่ได้รับมอบหมาย</div>
+            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code><span class=\"user-replace\">username</span></code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code><span class=\"user-replace\">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย</div>
           </div>
         </div>
         <div class="code-block">
@@ -1136,13 +1164,13 @@
           <pre><span class="nm">services</span>:
   <span class="nm">web</span>:
     <span class="cm"># ดึง Image ที่ Build แล้วจาก GitLab Container Registry</span>
-    <span class="nm">image</span>: <span class="st">registry.gitlab.com/<span class="vl">username</span>/my-project:latest</span>
+    <span class="nm">image</span>: <span class="st">registry.gitlab.com/<span class="user-replace">username</span>/my-project:latest</span>
     <span class="nm">container_name</span>: <span class="st">my_website</span>
 
     <span class="nm">ports</span>:
       <span class="cm"># [Port บน Server]:[Port ของ Container]</span>
       <span class="cm"># เปลี่ยนเฉพาะฝั่งซ้าย (99xx) เป็น Port ที่ได้รับมอบหมาย</span>
-      - <span class="st">"<span class="vl">99xx</span>:80"</span>
+      - <span class="st">"<span class="user-replace">99xx</span>:80"</span>
 
     <span class="cm"># รีสตาร์ทอัตโนมัติเสมอ (ยกเว้นถ้าเราสั่งหยุดเอง)</span>
     <span class="nm">restart</span>: <span class="kw">unless-stopped</span>
@@ -1156,7 +1184,7 @@
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>อย่าลืมเปลี่ยน <code>username</code> เป็น GitLab username ของคุณ และ <code>99xx</code> เป็น Port ที่ได้รับมอบหมาย มิฉะนั้น Deploy จะ Error</div>
+          <div>อย่าลืมเปลี่ยน <code><span class=\"user-replace\">username</span></code> เป็น GitLab username ของคุณ และ <code><span class=\"user-replace\">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย มิฉะนั้น Deploy จะ Error</div>
         </div>
         <div class="step-image">
           <img src="picture/13.png" alt="docker-compose.yml content" loading="lazy" />
@@ -1185,12 +1213,12 @@
           <tbody>
             <tr>
               <td>GitLab Username</td>
-              <td><code>username</code></td>
+              <td><code><span class=\"user-replace\">username</span></code></td>
               <td><code class="val">yourname</code></td>
             </tr>
             <tr>
               <td>Port Number</td>
-              <td><code>99xx:80</code></td>
+              <td><code><span class=\"user-replace\">99xx</span>:80</code></td>
               <td><code class="val">9901:80</code> (ใส่เลขที่คุณได้)</td>
             </tr>
           </tbody>
@@ -1610,17 +1638,17 @@
           <tbody>
             <tr>
               <td><code>SERVER_IP</code></td>
-              <td><span class="val">49.229.108.152</span></td>
+              <td><span class="user-replace">49.229.108.152</span></td>
               <td>IP Address ของ Server</td>
             </tr>
             <tr>
               <td><code>SERVER_USER</code></td>
-              <td><span class="val">user</span></td>
+              <td><span class="user-replace">user</span></td>
               <td>Username สำหรับ login เข้า Server</td>
             </tr>
             <tr>
               <td><code>SERVER_PASSWORD</code></td>
-              <td><span class="val">9875321</span></td>
+              <td><span class="user-replace">9875321</span></td>
               <td>Password สำหรับ login เข้า Server</td>
             </tr>
           </tbody>
@@ -1792,7 +1820,7 @@ Cleaning up project directory and file based variables
             <span class="code-block-lang">URL</span>
             <button class="code-block-copy" onclick="copyCode(this)">Copy</button>
           </div>
-          <pre>49.229.108.152:<span class="vl">99xx</span>   ← เปลี่ยน 99xx เป็นเลข Port ของคุณ</pre>
+          <pre><span class="user-replace">49.229.108.152</span>:<span class="user-replace">99xx</span>   ← เปลี่ยน 99xx เป็นเลข Port ของคุณ</pre>
         </div>
         <div class="step-image">
           <img src="picture/44.png" alt="Open in browser" loading="lazy" />
@@ -1868,14 +1896,14 @@ Cleaning up project directory and file based variables
     // Pause scroll spy so it doesn't fight the click highlight
     pauseSpy(1000);
 
-    // Highlight immediately (no sidebar scroll — user is already looking at it)
-    document.querySelectorAll('.nav-sub-item').forEach(s => s.classList.remove('sub-active'));
-    el.classList.add('sub-active');
-
     // Switch page if needed (without scroll-to-top)
     if (currentPage !== pageNum) {
       showPage(pageNum, true);
     }
+
+    // Highlight immediately after page switch
+    document.querySelectorAll('.nav-sub-item').forEach(s => s.classList.remove('sub-active'));
+    el.classList.add('sub-active');
 
     // Scroll to the step
     if (anchor) {
