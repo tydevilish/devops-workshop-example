@@ -1251,7 +1251,7 @@
           <div class="step-num">13</div>
           <div class="step-content">
             <div class="step-title">เขียนโค้ดใน docker-compose.yml</div>
-            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code><span class="user-replace">username</span></code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย</div>
+            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 3 จุด: เปลี่ยน <code><span class="user-replace">username</span></code> เป็นชื่อ GitLab ของคุณ, เปลี่ยน <code><span class="user-replace">my_website</span></code> เป็นชื่อ Container ของคุณ, และเปลี่ยน <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย</div>
           </div>
         </div>
         <div class="code-block">
@@ -1263,7 +1263,7 @@
   <span class="nm">web</span>:
     <span class="cm"># ดึง Image ที่ Build แล้วจาก GitLab Container Registry</span>
     <span class="nm">image</span>: <span class="st">registry.gitlab.com/<span class="user-replace">username</span>/my-project:latest</span>
-    <span class="nm">container_name</span>: <span class="st">my_website</span>
+    <span class="nm">container_name</span>: <span class="st">"<span class="user-replace">my_website</span>"</span>
 
     <span class="nm">ports</span>:
       <span class="cm"># [Port บน Server]:[Port ของ Container]</span>
@@ -1282,7 +1282,7 @@
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>อย่าลืมเปลี่ยน <code><span class="user-replace">username</span></code> เป็น GitLab username ของคุณ (<strong>ต้องเป็นตัวพิมพ์เล็กทั้งหมด</strong> หากมีตัวพิมพ์ใหญ่ให้แก้เป็นตัวพิมพ์เล็กให้หมด) และ <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมายตามตารางด้านล่าง มิฉะนั้น Deploy จะ Error</div>
+          <div>อย่าลืมเปลี่ยน <code><span class="user-replace">username</span></code> เป็น GitLab username ของคุณ (<strong>ต้องเป็นตัวพิมพ์เล็กทั้งหมด</strong> หากมีตัวพิมพ์ใหญ่ให้แก้เป็นตัวพิมพ์เล็กให้หมด), เปลี่ยน <code><span class="user-replace">my_website</span></code> เป็น <strong>เลข 3 ตัวท้ายของรหัสนักศึกษา (ตัวอย่าง 683... คือเลขท้าย 3 ตัว) และตามด้วยชื่อภาษาอังกฤษของคุณ</strong> (เช่น <code>001kittikun</code>), และเปลี่ยน <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมายตามตารางด้านล่าง มิฉะนั้น Deploy จะ Error</div>
         </div>
 
         <div style="margin: 14px 0 0 46px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius);">
@@ -1527,8 +1527,8 @@
         <div class="step-header">
           <div class="step-num">14</div>
           <div class="step-content">
-            <div class="step-title">ตรวจสอบ GitLab Username และ Port ให้ถูกต้อง</div>
-            <div class="step-desc">ก่อนไปขั้นต่อไป ตรวจสอบ 2 จุดในไฟล์ <code>docker-compose.yml</code> ให้แน่ใจ:</div>
+            <div class="step-title">ตรวจสอบ GitLab Username, Container Name และ Port ให้ถูกต้อง</div>
+            <div class="step-desc">ก่อนไปขั้นต่อไป ตรวจสอบ 3 จุดในไฟล์ <code>docker-compose.yml</code> ให้แน่ใจ:</div>
           </div>
         </div>
         <table class="var-table">
@@ -1544,6 +1544,11 @@
               <td>GitLab Username</td>
               <td><code><span class="user-replace">username</span></code></td>
               <td><code class="val">yourname</code></td>
+            </tr>
+            <tr>
+              <td>Container Name</td>
+              <td><code><span class="user-replace">my_website</span></code></td>
+              <td><code class="val">001kittikun</code> (เลขท้าย 3 ตัว+ชื่ออิ้ง)</td>
             </tr>
             <tr>
               <td>Port Number</td>
