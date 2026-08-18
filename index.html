@@ -1251,7 +1251,7 @@
           <div class="step-num">13</div>
           <div class="step-content">
             <div class="step-title">เขียนโค้ดใน docker-compose.yml</div>
-            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code><span class=\"user-replace\">username</span></code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code><span class=\"user-replace\">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย</div>
+            <div class="step-desc">วางโค้ดด้านล่าง — ต้องแก้ 2 จุด: เปลี่ยน <code><span class="user-replace">username</span></code> เป็นชื่อ GitLab ของคุณ และเปลี่ยน <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย</div>
           </div>
         </div>
         <div class="code-block">
@@ -1282,7 +1282,238 @@
         </div>
         <div class="callout warn">
           <span class="callout-icon">⚠️</span>
-          <div>อย่าลืมเปลี่ยน <code><span class=\"user-replace\">username</span></code> เป็น GitLab username ของคุณ และ <code><span class=\"user-replace\">99xx</span></code> เป็น Port ที่ได้รับมอบหมาย มิฉะนั้น Deploy จะ Error</div>
+          <div>อย่าลืมเปลี่ยน <code><span class="user-replace">username</span></code> เป็น GitLab username ของคุณ (<strong>ต้องเป็นตัวพิมพ์เล็กทั้งหมด</strong> หากมีตัวพิมพ์ใหญ่ให้แก้เป็นตัวพิมพ์เล็กให้หมด) และ <code><span class="user-replace">99xx</span></code> เป็น Port ที่ได้รับมอบหมายตามตารางด้านล่าง มิฉะนั้น Deploy จะ Error</div>
+        </div>
+
+        <div style="margin: 14px 0 0 46px; max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius);">
+          <table class="var-table" style="margin: 0; width: 100%;">
+            <thead style="position: sticky; top: 0; z-index: 1; background: var(--bg-code);">
+              <tr>
+                <th style="padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);">ลำดับ</th>
+                <th style="padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);">รหัสนักศึกษา</th>
+                <th style="padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);">ชื่อ-นามสกุล</th>
+                <th style="padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);">Port (99xx)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>68319010001</td>
+                <td>นายกิตติคุณ ชูบุญ</td>
+                <td><code class="val">9901</code></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>68319010002</td>
+                <td>นายไกรวิชญ์ อ้นเกษ</td>
+                <td><code class="val">9902</code></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>68319010005</td>
+                <td>นายจิรภัทร ป่าไพร</td>
+                <td><code class="val">9903</code></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>68319010007</td>
+                <td>นายชลสิทธิ์ แสงปินตา</td>
+                <td><code class="val">9904</code></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>68319010008</td>
+                <td>นายชวนากร ไชยวงค์</td>
+                <td><code class="val">9905</code></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>68319010009</td>
+                <td>นายชินดนัย พรมแดง</td>
+                <td><code class="val">9906</code></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>68319010011</td>
+                <td>นายณัฏฐณวัฒน์ มานะกิจ</td>
+                <td><code class="val">9907</code></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>68319010012</td>
+                <td>นายตุลธร เลาว้าง</td>
+                <td><code class="val">9908</code></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>68319010013</td>
+                <td>นายทวีศักดิ์ นำมา</td>
+                <td><code class="val">9909</code></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>68319010014</td>
+                <td>นายธนกร มีทรัพย์</td>
+                <td><code class="val">9910</code></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>68319010015</td>
+                <td>นายธนกฤต กุณะแสงคำ</td>
+                <td><code class="val">9911</code></td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>68319010016</td>
+                <td>นายธนากร สุนโท</td>
+                <td><code class="val">9912</code></td>
+              </tr>
+              <tr>
+                <td>13</td>
+                <td>68319010017</td>
+                <td>นายธีรภัทร คำชุม</td>
+                <td><code class="val">9913</code></td>
+              </tr>
+              <tr>
+                <td>14</td>
+                <td>68319010019</td>
+                <td>นายนราวิชญ์ พิชัย</td>
+                <td><code class="val">9914</code></td>
+              </tr>
+              <tr>
+                <td>15</td>
+                <td>68319010020</td>
+                <td>นายบวรทัต ไชยวงค์</td>
+                <td><code class="val">9915</code></td>
+              </tr>
+              <tr>
+                <td>16</td>
+                <td>68319010021</td>
+                <td>นายปี สุขใจ</td>
+                <td><code class="val">9916</code></td>
+              </tr>
+              <tr>
+                <td>17</td>
+                <td>68319010022</td>
+                <td>นายพสิษฐ์ จงงามวิไล</td>
+                <td><code class="val">9917</code></td>
+              </tr>
+              <tr>
+                <td>18</td>
+                <td>68319010023</td>
+                <td>นายพัทธดนย์ กาชัย</td>
+                <td><code class="val">9918</code></td>
+              </tr>
+              <tr>
+                <td>19</td>
+                <td>68319010024</td>
+                <td>นางสาวภักจิรา พากเพียร</td>
+                <td><code class="val">9919</code></td>
+              </tr>
+              <tr>
+                <td>20</td>
+                <td>68319010025</td>
+                <td>นายวรากร ไชยยา</td>
+                <td><code class="val">9920</code></td>
+              </tr>
+              <tr>
+                <td>21</td>
+                <td>68319010026</td>
+                <td>นายสราวุฒิ ชัยวงค์</td>
+                <td><code class="val">9921</code></td>
+              </tr>
+              <tr>
+                <td>22</td>
+                <td>68319010028</td>
+                <td>นายเสฎฐวุฒิ ขาวสะอาด</td>
+                <td><code class="val">9922</code></td>
+              </tr>
+              <tr>
+                <td>23</td>
+                <td>68319010029</td>
+                <td>นายอดิชาติ ใจสวน</td>
+                <td><code class="val">9923</code></td>
+              </tr>
+              <tr>
+                <td>24</td>
+                <td>68319010030</td>
+                <td>นายอนุวัฒน์ สมเดช</td>
+                <td><code class="val">9924</code></td>
+              </tr>
+              <tr>
+                <td>25</td>
+                <td>68319010031</td>
+                <td>นายนนทพัทธ์ เนตรผาบ</td>
+                <td><code class="val">9925</code></td>
+              </tr>
+              <tr>
+                <td>26</td>
+                <td>68319010032</td>
+                <td>นายธนกฤต สุปัญญา</td>
+                <td><code class="val">9926</code></td>
+              </tr>
+              <tr>
+                <td>27</td>
+                <td>68319010033</td>
+                <td>นายกรวิชญ์ กองเงิน</td>
+                <td><code class="val">9927</code></td>
+              </tr>
+              <tr>
+                <td>28</td>
+                <td>68319010034</td>
+                <td>นายธีรเมธ คำจา</td>
+                <td><code class="val">9928</code></td>
+              </tr>
+              <tr>
+                <td>29</td>
+                <td>68319010035</td>
+                <td>นายธนพรพรรณ อภิชนภูริ</td>
+                <td><code class="val">9929</code></td>
+              </tr>
+              <tr>
+                <td>30</td>
+                <td>68319010036</td>
+                <td>นายผไทภักดิ์ อาจวิจิตร</td>
+                <td><code class="val">9930</code></td>
+              </tr>
+              <tr>
+                <td>31</td>
+                <td>68319010037</td>
+                <td>นายภัทรศัย ใจพงค์</td>
+                <td><code class="val">9931</code></td>
+              </tr>
+              <tr>
+                <td>32</td>
+                <td>68319010038</td>
+                <td>นายศุภฤกษ์ อุดมกสพ</td>
+                <td><code class="val">9932</code></td>
+              </tr>
+              <tr>
+                <td>33</td>
+                <td>68319010062</td>
+                <td>นายจิตติพัฒน์ จันทะกี</td>
+                <td><code class="val">9933</code></td>
+              </tr>
+              <tr>
+                <td>34</td>
+                <td>68319010063</td>
+                <td>นายชลธี เลี้ยงบุตร</td>
+                <td><code class="val">9934</code></td>
+              </tr>
+              <tr>
+                <td>35</td>
+                <td>68319010065</td>
+                <td>นายโชติกร สุวรรณสาร</td>
+                <td><code class="val">9935</code></td>
+              </tr>
+              <tr>
+                <td>36</td>
+                <td>68319010066</td>
+                <td>นายคณาธิป ฐานดี</td>
+                <td><code class="val">9936</code></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <div class="step-image">
           <img src="picture/13.png" alt="docker-compose.yml content" loading="lazy" />
@@ -1311,12 +1542,12 @@
           <tbody>
             <tr>
               <td>GitLab Username</td>
-              <td><code><span class=\"user-replace\">username</span></code></td>
+              <td><code><span class="user-replace">username</span></code></td>
               <td><code class="val">yourname</code></td>
             </tr>
             <tr>
               <td>Port Number</td>
-              <td><code><span class=\"user-replace\">99xx</span>:80</code></td>
+              <td><code><span class="user-replace">99xx</span>:80</code></td>
               <td><code class="val">9901:80</code> (ใส่เลขที่คุณได้)</td>
             </tr>
           </tbody>
